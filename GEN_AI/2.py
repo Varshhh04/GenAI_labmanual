@@ -6,7 +6,8 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 import gensim.downloader as api
 # Load a smaller pre-trained model
-model = api.load("word2vec-google-news-300") # Automatically downloads if missing
+model = api.load("word2vec-google-news-300") # Automatically downloads if 
+missing
 # Test similarity
 print(model.most_similar("soccer", topn=5))
 # Choose 10 sports-related words
