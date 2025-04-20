@@ -1,105 +1,66 @@
-from gensim.models import Word2Vec
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-import nltk
+# Install required libraries 
+!pip install gensim matplotlib 
+ 
+# Import libraries 
+from gensim.models import Word2Vec 
+from gensim.models.word2vec import LineSentence 
+import matplotlib.pyplot as plt 
+from sklearn.manifold import TSNE 
 
-# Download stopwords if not already downloaded
-nltk.download('punkt')
-nltk.download('stopwords')
+import numpy as np 
+ 
+# Sample domain-specific corpus (medical domain) 
+medical_corpus = [ 
+    "The patient was diagnosed with diabetes and hypertension.", 
+    "MRI scans reveal abnormalities in the brain tissue.", 
+    "The treatment involves antibiotics and regular monitoring.", 
+    "Symptoms include fever, fatigue, and muscle pain.", 
+    "The vaccine is effective against several viral infections.", 
+    "Doctors recommend physical therapy for recovery.", 
+    "The clinical trial results were published in the journal.", 
+    "The surgeon performed a minimally invasive procedure.", 
+    "The prescription includes pain relievers and anti-inflammatory drugs.", 
+    "The diagnosis confirmed a rare genetic disorder." 
+] 
+ 
+# Preprocess corpus (tokenize sentences) 
+processed_corpus = [sentence.lower().split() for sentence in medical_corpus] 
+ 
+# Train a Word2Vec model 
+print("Training Word2Vec model...") 
+model = Word2Vec(sentences=processed_corpus, vector_size=100, window=5, min_count=1, 
+workers=4, epochs=50) 
+print("Model training complete!") 
+ 
+# Extract embeddings for visualization 
+words = list(model.wv.index_to_key) 
+embeddings = np.array([model.wv[word] for word in words]) 
+ 
+# Dimensionality reduction using t-SNE 
+tsne = TSNE(n_components=2, random_state=42, perplexity=5, n_iter=300) 
+tsne_result = tsne.fit_transform(embeddings) 
+ 
+# Visualization of word embeddings 
+plt.figure(figsize=(10, 8)) 
+plt.scatter(tsne_result[:, 0], tsne_result[:, 1], color="blue") 
+for i, word in enumerate(words): 
+    plt.text(tsne_result[i, 0] + 0.02, tsne_result[i, 1] + 0.02, word, fontsize=12) 
+plt.title("Word Embeddings Visualization (Medical Domain)") 
+plt.xlabel("Dimension 1") 
+plt.ylabel("Dimension 2") 
+plt.grid(True) 
+plt.show() 
 
-# Define the stopwords
-stop_words = set(stopwords.words('english'))
-
-# Sample domain-specific text (medical domain)
-corpus = [
-    "The patient was prescribed antibiotics to treat the infection.",
-    "Doctors recommend regular exercise for cardiovascular health.",
-    "The surgery was successful, and the patient is recovering well.",
-    "Medical research focuses on finding cures for chronic diseases."
-]
-
-# Preprocess text: Tokenize and remove stopwords
-tokenized_corpus = [
-    [word for word in word_tokenize(sentence.lower()) if word.isalnum() and word not in stop_words]
-    for sentence in corpus
-]
-
-# Train Word2Vec model
-custom_model = Word2Vec(sentences=tokenized_corpus, vector_size=100, window=5, min_count=1, workers=4)
-
-# Analyze embeddings
-# Access similar words and vectors
-print("Words similar to 'patient':", custom_model.wv.most_similar('patient'))
-print("Vector for 'patient':", custom_model.wv['patient'])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-from gensim.models import Word2Vec
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-import nltk
-
-# Download stopwords if not already downloaded
-nltk.download('punkt')
-nltk.download('stopwords')
-
-# Define the stopwords
-stop_words = set(stopwords.words('english'))
-
-# Function to preprocess text
-def preprocess_text(file_path):
-    # Read the file
-    with open(file_path, 'r', encoding='utf-8') as file:
-        text = file.read()
-    
-    # Tokenize sentences and words, remove stopwords and non-alphanumeric tokens
-    tokenized_sentences = [
-        [word for word in word_tokenize(sentence.lower()) if word.isalnum() and word not in stop_words]
-        for sentence in text.splitlines()  # Split by lines for sentence-wise tokenization
-    ]
-    
-    # Remove empty sentences
-    tokenized_sentences = [sentence for sentence in tokenized_sentences if sentence]
-    return tokenized_sentences
-
-# Specify the path to your text file
-file_path = r'C:\Users\Nishanth\Downloads\medical_corpus.txt'  # Replace with the path to your 2 MB file
-
-# Preprocess the text file
-tokenized_corpus = preprocess_text(file_path)
-
-# Train Word2Vec model
-custom_model = Word2Vec(sentences=tokenized_corpus, vector_size=100, window=5, min_count=1, workers=4)
-
-# Analyze embeddings
-# Access similar words and vectors
-word_to_query = 'patient'  # Replace with a word present in your text file
-if word_to_query in custom_model.wv:
-    print("Words similar to '{}':".format(word_to_query), custom_model.wv.most_similar(word_to_query))
-    print("Vector for '{}':".format(word_to_query), custom_model.wv[word_to_query])
-else:
-    print(f"'{word_to_query}' not found in the vocabulary.")
+# Analyze domain-specific semantics 
+def find_similar_words(input_word, top_n=5): 
+    try: 
+        similar_words = model.wv.most_similar(input_word, topn=top_n) 
+        print(f"Words similar to '{input_word}':") 
+        for word, similarity in similar_words: 
+            print(f"  {word} ({similarity:.2f})") 
+    except KeyError: 
+        print(f"'{input_word}' not found in vocabulary.") 
+ 
+# Example: Generate semantically similar words 
+find_similar_words("treatment") 
+find_similar_words("vaccine")
